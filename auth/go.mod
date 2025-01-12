@@ -1,4 +1,4 @@
-module bluebid.com/auth
+module tickethub.com/auth
 
 go 1.23.4
 

@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"log"
 
-	"bluebid.com/auth/config"
-	"bluebid.com/auth/utils"
+	"tickethub.com/auth/config"
+	"tickethub.com/auth/utils"
 )
 
 type User struct {

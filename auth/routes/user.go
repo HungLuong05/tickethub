@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"fmt"
 
-	"bluebid.com/auth/models"
-	"bluebid.com/auth/utils"
+	"tickethub.com/auth/models"
+	"tickethub.com/auth/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -51,4 +51,20 @@ func Login(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, gin.H{"token": token, "message": "Login successful."})
+}
+
+func Verify(context *gin.Context) {
+	token := context.GetHeader("Authorization")
+	if token == "" {
+		context.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized."})
+		return
+	}
+
+	id, err := utils.VerifyToken(token)
+	if err != nil {
+		context.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized."})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"id": id, "message": "Authorized."})
 }
