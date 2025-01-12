@@ -3,7 +3,7 @@ package middlewares
 import (
 	"net/http"
 
-	"bluebid.com/auth/utils"
+	"tickethub.com/auth/utils"
 	"github.com/gin-gonic/gin"
 )
 
