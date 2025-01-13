@@ -94,3 +94,16 @@ func (user User) ValidateCredentials() error {
 
 	return nil
 }
+
+func (user User) UpdateEventPerm (eventId int64) error {
+	query := "INSERT INTO event_perm(user_id, event_id) VALUES ($1, $2)"
+	args := []interface{}{user.Id, eventId}
+
+	err := pg.DB.Exec(query, args...)
+	if err != nil {
+		log.Println("Could not update event permission: ", err)
+		return errors.New("could not update event permission")
+	}
+	fmt.Printf("Event permission updated successfully: %v %v\n", query, args)
+	return nil
+}
