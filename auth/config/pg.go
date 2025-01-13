@@ -28,7 +28,7 @@ type PGPool struct {
 }
 
 func Config() (*pgxpool.Config) {
-	DATABASE_URL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+	DATABASE_URL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
 		os.Getenv("POSTGRES_USER"),
 		os.Getenv("POSTGRES_PASSWORD"),
 		os.Getenv("POSTGRES_HOST"),
@@ -175,7 +175,13 @@ func (db *PGPool) CreateTables() (error) {
 			email VARCHAR(100) NOT NULL,
 			password VARCHAR(200) NOT NULL,
 			salt VARCHAR(200) NOT NULL
-		)
+		);
+		CREATE TABLE IF NOT EXISTS event_perms (
+			user_id INT NOT NULL,
+			event_id INT NOT NULL,
+			PRIMARY KEY (user_id, event_id),
+			FOREIGN KEY (user_id) REFERENCES users(id),
+		);
 	`
 
 	fmt.Printf("Creating table: %v\n", createUsersTable)
@@ -191,7 +197,10 @@ func (db *PGPool) CreateTables() (error) {
 }
 
 func (db *PGPool) DropTables() (error) {
-	dropUsersTable := `DROP TABLE IF EXISTS users`
+	dropUsersTable := `
+		DROP TABLE IF EXISTS users;
+		DROP TABLE IF EXISTS event_perms;
+	`
 
 	fmt.Printf("Dropping table: %v\n", dropUsersTable)
 	_, err := db.Query(dropUsersTable)

@@ -66,5 +66,5 @@ func Verify(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"id": id, "message": "Authorized."})
+	context.JSON(http.StatusOK, gin.H{"user_id": id, "message": "Authorized."})
 }
