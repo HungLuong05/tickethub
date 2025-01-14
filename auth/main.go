@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"sync"
+	"os"
 
 	"tickethub.com/auth/config"
 	"tickethub.com/auth/routes"
@@ -12,14 +13,16 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-  if err != nil {
-    log.Fatal("Error loading .env file")
-  }
+	if os.Getenv("KUBERNETES_SERVICE_HOST") == "" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+	}
 
 	pg.DB = &pg.PGPool{}
 
-	err = pg.DB.ConnectDB()
+	err := pg.DB.ConnectDB()
 	if err != nil {
 		log.Fatal("Could not connect to the database: ", err)
 	}
@@ -30,10 +33,10 @@ func main() {
 	go func() {
 		defer wg.Done()
 		server := gin.Default()
-		err = server.SetTrustedProxies([]string{"127.0.0.1"})
-		if err != nil {
-			log.Fatal("Could not set trusted proxies: ", err)
-		}
+		// err = server.SetTrustedProxies([]string{"127.0.0.1"})
+		// if err != nil {
+		// 	log.Fatal("Could not set trusted proxies: ", err)
+		// }
 
 		routes.RegisterRoutes(server)
 		server.Run(":8000")
