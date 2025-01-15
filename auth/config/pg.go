@@ -173,17 +173,27 @@ func (db *PGPool) CreateTables() (error) {
 			password VARCHAR(200) NOT NULL,
 			salt VARCHAR(200) NOT NULL
 		);
+	`
+
+	fmt.Printf("Creating table: %v\n", createUsersTable)
+	err := db.Exec(createUsersTable)
+
+	if err != nil {
+		log.Printf("Could not create table: %v", err)
+		return err
+	}
+
+	createEventPermsTable := `
 		CREATE TABLE IF NOT EXISTS event_perms (
 			user_id INT NOT NULL,
 			event_id INT NOT NULL,
 			PRIMARY KEY (user_id, event_id),
-			FOREIGN KEY (user_id) REFERENCES users(id),
+			FOREIGN KEY (user_id) REFERENCES users(id)
 		);
 	`
 
-	fmt.Printf("Creating table: %v\n", createUsersTable)
-
-	err := db.Exec(createUsersTable)
+	fmt.Printf("Creating table: %v\n", createEventPermsTable)
+	err = db.Exec(createEventPermsTable)
 
 	if err != nil {
 		log.Printf("Could not create table: %v", err)
@@ -196,12 +206,20 @@ func (db *PGPool) CreateTables() (error) {
 func (db *PGPool) DropTables() (error) {
 	dropUsersTable := `
 		DROP TABLE IF EXISTS users;
+	`
+	fmt.Printf("Dropping table: %v\n", dropUsersTable)
+	err := db.Exec(dropUsersTable)
+
+	if err != nil {
+		log.Printf("Could not drop table: %v", err)
+		return err
+	}
+
+	dropEventPermsTable := `
 		DROP TABLE IF EXISTS event_perms;
 	`
-
-	fmt.Printf("Dropping table: %v\n", dropUsersTable)
-	_, err := db.Query(dropUsersTable)
-
+	fmt.Printf("Dropping table: %v\n", dropEventPermsTable)
+	err = db.Exec(dropEventPermsTable)
 	if err != nil {
 		log.Printf("Could not drop table: %v", err)
 		return err
