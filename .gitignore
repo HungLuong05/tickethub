@@ -4,3 +4,4 @@ progress
 apache_kafka
 nginx/sites
 .env
+k8s/ghcr-secret.yaml
