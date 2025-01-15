@@ -69,7 +69,7 @@ func Config() (*pgxpool.Config) {
 func (db *PGPool) ConnectDB() (error) {
 	connPool, err := pgxpool.NewWithConfig(context.Background(), Config())
 	if err != nil {
-		log.Fatal("Could not create connection to database")
+		log.Printf("Could not create connection to database: %v", err)
 		return err
 	}
 
@@ -82,8 +82,7 @@ func (db *PGPool) ConnectDB() (error) {
 func (db *PGPool) Query(query string, args ... interface{}) (pgx.Rows, error) {
 	connection, err := db.ConnPool.Acquire(context.Background())
 	if err != nil {
-		fmt.Printf("Could not acquire connection from connection pool: %v\n", err)
-		log.Fatal("Could not acquire connection from connection pool")
+		log.Printf("could not acquire connection from connection pool: %v\n", err)
 		return nil, err
 	}
 
@@ -91,22 +90,22 @@ func (db *PGPool) Query(query string, args ... interface{}) (pgx.Rows, error) {
 
 	err = connection.Ping(context.Background())
 	if err != nil {
-		log.Fatal("Could not ping database")
-		return nil, fmt.Errorf("Could not ping database: %v", err)
+		log.Printf("could not ping database: %v", err)
+		return nil, fmt.Errorf("could not ping database: %v", err)
 	}
 
 	if len(args) == 0 {
 		rows, err := connection.Query(context.Background(), query)
 		if err != nil {
-			return nil, fmt.Errorf("Query execution failed: %v", err)
+			return nil, fmt.Errorf("query execution failed: %v", err)
 		}
 		return rows, nil
 	}
 
 	rows, err := connection.Query(context.Background(), query, args...)
-	fmt.Println("Query: ", query, "Args: ", args)
 	if err != nil {
-		return nil, fmt.Errorf("Query execution failed: %v", err)
+		log.Printf("query execution failed: %v", err)
+		return nil, fmt.Errorf("query execution failed: %v", err)
 	}
 	return rows, nil
 }
@@ -114,8 +113,7 @@ func (db *PGPool) Query(query string, args ... interface{}) (pgx.Rows, error) {
 func (db *PGPool) Exec(query string, args ... interface{}) (error) {
 	connection, err := db.ConnPool.Acquire(context.Background())
 	if err != nil {
-		fmt.Printf("Could not acquire connection from connection pool: %v\n", err)
-		log.Fatal("Could not acquire connection from connection pool")
+		log.Printf("Could not acquire connection from connection pool: %v\n", err)
 		return err
 	}
 
@@ -146,8 +144,7 @@ func (db *PGPool) Exec(query string, args ... interface{}) (error) {
 func (db *PGPool) QueryRow(query string, args ... interface{}) (pgx.Row, error) {
 	connection, err := db.ConnPool.Acquire(context.Background())
 	if err != nil {
-		fmt.Printf("Could not acquire connection from connection pool: %v\n", err)
-		log.Fatal("Could not acquire connection from connection pool")
+		log.Printf("Could not acquire connection from connection pool: %v\n", err)
 		return nil, err
 	}
 
@@ -155,8 +152,8 @@ func (db *PGPool) QueryRow(query string, args ... interface{}) (pgx.Row, error) 
 
 	err = connection.Ping(context.Background())
 	if err != nil {
-		log.Fatal("Could not ping database")
-		return nil, fmt.Errorf("Could not ping database: %v", err)
+		log.Printf("Could not ping database: %v\n", err)
+		return nil, fmt.Errorf("could not ping database: %v", err)
 	}
 
 	if len(args) == 0 {
@@ -189,7 +186,7 @@ func (db *PGPool) CreateTables() (error) {
 	err := db.Exec(createUsersTable)
 
 	if err != nil {
-		log.Fatal("Could not create table")
+		log.Printf("Could not create table: %v", err)
 		return err
 	}
 
@@ -204,10 +201,9 @@ func (db *PGPool) DropTables() (error) {
 
 	fmt.Printf("Dropping table: %v\n", dropUsersTable)
 	_, err := db.Query(dropUsersTable)
-	fmt.Printf("Dropped table: %v\n", dropUsersTable)
 
 	if err != nil {
-		log.Fatal("Could not drop table")
+		log.Printf("Could not drop table: %v", err)
 		return err
 	}
 
