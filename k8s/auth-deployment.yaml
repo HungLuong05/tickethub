@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  labels:
+    app: auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: auth
+        image: ghcr.io/hungluong05/tickethub-auth:main
+        imagePullPolicy: Always
+        # resources:
+        #   limits:
+        #     memory: "128Mi"
+        #     cpu: "500m"
+        #   requests:
+        #     memory: "64Mi"
+        #     cpu: "1"
+        #     ephemeral-storage: "300Mi"
+        ports:
+          - containerPort: 8000
+          - containerPort: 50051
+        env:
+          - name: POSTGRES_USER
+            value: hld
+          - name: POSTGRES_PASSWORD
+            value: secretpassword
+          - name: POSTGRES_DB
+            value: userdb
+          - name: POSTGRES_PORT
+            value: "5432"
+          - name: POSTGRES_HOST
+            value: userdb
+      imagePullSecrets:
+      - name: ghcr-secret
+          
+        
