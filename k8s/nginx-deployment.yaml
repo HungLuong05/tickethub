@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    app: nginx  
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 1      
+  template:
+    metadata:
+      labels:
+        app: nginx        
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: nginx      
+        image: nginx:stable
+        # resources:
+        #   limits:
+        #     memory: "128Mi"
+        #     cpu: "500m"
+        #   requests:
+        #     memory: "64Mi"
+        #     cpu: "0.5"
+        #     ephemeral-storage: "300Mi"
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
