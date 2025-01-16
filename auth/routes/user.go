@@ -1,12 +1,13 @@
 package routes
 
 import (
-	"net/http"
 	"fmt"
+	"net/http"
+	"strconv"
 
+	"github.com/gin-gonic/gin"
 	"tickethub.com/auth/models"
 	"tickethub.com/auth/utils"
-	"github.com/gin-gonic/gin"
 )
 
 func Register(context *gin.Context) {
@@ -66,5 +67,6 @@ func Verify(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"user_id": id, "message": "Authorized."})
+	context.Header("User-ID", strconv.FormatInt(id, 10))
+	context.JSON(http.StatusOK, gin.H{"message": "Authorized."})
 }
