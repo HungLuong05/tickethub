@@ -88,6 +88,14 @@ func UpdateEvent (context *gin.Context) {
 		return
 	}
 
+	eventIdStr := context.Param("id")
+	eventId, err := strconv.ParseInt(eventIdStr, 10, 64)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Invalid event ID" + eventIdStr})
+		return
+	}
+	event.Id = eventId
+
 	err = event.UpdateEvent()
 
 	if err != nil {
@@ -109,6 +117,14 @@ func DeleteEvent (context *gin.Context, grpcClient proto.EventPermClient) {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse request data."})
 		return
 	}
+
+	eventIdStr := context.Param("id")
+	eventId, err := strconv.ParseInt(eventIdStr, 10, 64)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Invalid event ID" + eventIdStr})
+		return
+	}
+	event.Id = eventId
 
 	err = event.DeleteEvent()
 
