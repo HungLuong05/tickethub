@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option go_package = './';
+
+package proto;
+
+service EventPerm {
+  rpc AddEventPerm (AddEventPermRequest) returns (AddEventPermResponse);
+  rpc DeleteEventPerm (DeleteEventPermRequest) returns (DeleteEventPermResponse);
+}
+
+message AddEventPermRequest {
+  int64 event_id = 1;
+  int64 user_id = 2;
+}
+
+message AddEventPermResponse {
+  string message = 1;
+}
+
+message DeleteEventPermRequest {
+  int64 event_id = 1;
+  int64 user_id = 2;
+}
+
+message DeleteEventPermResponse {
+  string message = 1;
+}

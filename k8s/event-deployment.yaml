@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event
+  labels:
+    app: event
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: event
+  template:
+    metadata:
+      labels:
+        app: event
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: event
+        image: event:v1.0.7
+        # imagePullPolicy: Always
+        # resources:
+        #   limits:
+        #     memory: "128Mi"
+        #     cpu: "500m"
+        #   requests:
+        #     memory: "64Mi"
+        #     cpu: "1"
+        #     ephemeral-storage: "300Mi"
+        ports:
+          - containerPort: 8001
+          - containerPort: 50051
+        env:
+          - name: POSTGRES_USER
+            value: hld
+          - name: POSTGRES_PASSWORD
+            value: secretpassword
+          - name: POSTGRES_DB
+            value: eventdb
+          - name: POSTGRES_PORT
+            value: "5432"
+          - name: POSTGRES_HOST
+            value: eventdb
+      imagePullSecrets:
+      - name: ghcr-secret
+          
+        

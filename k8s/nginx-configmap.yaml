@@ -9,6 +9,16 @@ data:
     http {
         include mime.types;
 
+        # Define a custom log format that includes the value of upstream_http_x_user_id
+        log_format custom '$remote_addr - $remote_user [$time_local] "$request" '
+                          '$status $body_bytes_sent "$http_referer" '
+                          '"$http_user_agent" "$upstream_http_user_id" "$upstream_http_x_user_id" "$http_user_id" "$http_x_user_id" "$upstream_http_date" Nice';
+
+        # Use the custom log format for the access log
+        access_log /var/log/nginx/access.log custom;
+
+        log_format auth_debug '$upstream_http_x_user_id $upstream_http_user_id';
+
         server {
             listen 80;
             server_name _;
@@ -25,26 +35,50 @@ data:
                 proxy_pass http://auth:8000/register;
             }
 
-            location = api/auth/verify {
-                internal;
+            location = /api/auth/verify {
+                # internal;
+                proxy_method POST;
                 proxy_pass http://auth:8000/verify;
                 proxy_set_header X-Original-URI $request_uri;
                 proxy_set_header Content-Length "";
-                proxy_pass_request_body off;
                 proxy_set_header X-User-ID $upstream_http_user_id;
+                add_header X-User-ID $upstream_http_user_id;
+
+                
+                access_log /var/log/nginx/auth_debug.log auth_debug;
             }
 
-            location /api/ {
+            location /api/event {
+                if ($request_method = POST) {
+                    rewrite .* /_api/event last;
+                }
+                proxy_pass http://event:8001/api/event;
+            }
+
+            location /_api/event {
+                internal;
+
+                rewrite .* /api/event break;
+
+                auth_request /api/auth/verify;
+                auth_request_set $user_id $upstream_http_user_id;
+
+                access_log /var/log/nginx/auth_debug.log auth_debug;
                 
+                proxy_set_header X-User-ID $user_id;
+                proxy_pass_request_headers on;
+                proxy_pass http://event:8001/api/event;
             }
 
             # location /api/event {
-            #     auth_request /verify;
-            #     auth_request_set $user_id $upstream_http_x_user_id;
-            #     error_page 401 = @error401;
-            #     error_page 403 = @error403;
-            #     proxy_set_header X-User-ID $user_id;
-            #     proxy_pass http://tickethub-event:8001/api/event;
+            #    limit_except GET {
+            #         auth_request /api/auth/verify;
+            #         auth_request_set $user_id $upstream_http_x_user_id;
+            #         error_page 401 = @error401;
+            #         error_page 403 = @error403;
+            #         proxy_set_header X-User-ID $user_id;
+            #     }
+            #     proxy_pass http://event:8001/api/event
             # }
 
             location @error401 {

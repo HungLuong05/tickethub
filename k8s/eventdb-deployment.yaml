@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eventdb
+  labels:
+    app: eventdb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eventdb
+  template:
+    metadata:
+      labels:
+        app: eventdb
+    spec:
+      containers:
+      - name: eventdb
+        image: postgres:13
+        ports:
+        - containerPort: 5433
+        # resources:
+        #   requests:
+        #     memory: "64Mi"
+        #     cpu: "250m"
+        #   limits:
+        #     memory: "128Mi"
+        #     cpu: "500m"
+        #     storage: "2Gi"
+        env:
+        - name: POSTGRES_USER
+          value: hld
+        - name: POSTGRES_PASSWORD
+          value: secretpassword
+        - name: POSTGRES_DB
+          value: eventdb
+        volumeMounts:
+        - name: eventdb-persistent-storage
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: eventdb-persistent-storage
+        persistentVolumeClaim:
+          claimName: event-data-pvc
