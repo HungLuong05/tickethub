@@ -1,0 +1,123 @@
+package routes
+
+import (
+	"log"
+	"net/http"
+	"strconv"
+
+	"tickethub.com/event/proto"
+	"tickethub.com/event/models"
+	"github.com/gin-gonic/gin"
+)
+
+func CreateEvent (context *gin.Context, grpcClient proto.EventPermClient) {
+	var event models.Event
+
+	err := context.ShouldBindJSON(&event)
+
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse request data."})
+		return
+	}
+
+	err = event.CreateEvent()
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not save event."})
+		return
+	}
+
+	log.Println(context.Request.Header)
+	userIdStr := context.GetHeader("X-User-ID")
+  userId, err := strconv.ParseInt(userIdStr, 10, 64)
+  if err != nil {
+    context.JSON(http.StatusBadRequest, gin.H{"message": "Invalid user ID: " + userIdStr})
+    return
+  }
+
+	log.Println("Bug in sending grpc request??")
+
+	_, err = grpcClient.AddEventPerm(context.Request.Context(), &proto.AddEventPermRequest{UserId: userId, EventId: event.Id})
+  if err != nil {
+    context.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to update event permission"})
+    return
+  }
+
+	context.JSON(http.StatusCreated, gin.H{
+    "message": "Event created successfully",
+  })
+}
+
+func GetEvents (context *gin.Context) {
+	events, err := models.GetAllEvents()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch events."})
+		return
+	}
+
+	context.JSON(200, gin.H{
+		"message": "Get events successfully",
+		"events": events,
+	})
+}
+
+func GetEvent (context *gin.Context) {
+	eventIdStr := context.Param("id")
+	eventId, err := strconv.ParseInt(eventIdStr, 10, 64)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Invalid event ID" + eventIdStr})
+		return
+	}
+	event, err := models.GetEventById(eventId)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch event."})
+	}
+	context.JSON(http.StatusOK, gin.H{
+		"message": "Get event successfully",
+		"event": event,	
+	})
+}
+
+func UpdateEvent (context *gin.Context) {
+	var event models.Event
+
+	err := context.ShouldBindJSON(&event)
+
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse request data."})
+		return
+	}
+
+	err = event.UpdateEvent()
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not update event."})
+		return
+	}
+
+	context.JSON(200, gin.H{
+		"message": "Update event successfully",
+	})
+}
+
+func DeleteEvent (context *gin.Context, grpcClient proto.EventPermClient) {
+	var event models.Event
+
+	err := context.ShouldBindJSON(&event)
+
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse request data."})
+		return
+	}
+
+	err = event.DeleteEvent()
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not delete event."})
+		return
+	}
+
+	context.JSON(200, gin.H{
+		"message": "Delete event successfully",
+	})
+}

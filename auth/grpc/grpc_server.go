@@ -15,7 +15,7 @@ type server struct {
 	proto.UnimplementedEventPermServer
 }
 
-func (s *server) UpdateEventPerm(ctx context.Context, req *proto.AddEventPermRequest) (*proto.AddEventPermResponse, error) {
+func (s *server) AddEventPerm(ctx context.Context, req *proto.AddEventPermRequest) (*proto.AddEventPermResponse, error) {
 	log.Printf("Receive event id: %v\n", req.GetEventId())
 	log.Printf("Receive user id: %v\n", req.GetUserId())
 
