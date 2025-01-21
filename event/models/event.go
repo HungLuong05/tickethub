@@ -1,6 +1,8 @@
 package models
 
 import (
+	"log"
+
 	"tickethub.com/event/config"
 )
 
@@ -12,7 +14,7 @@ type Event struct {
 	Ticket 					int64		`binding:"required"`
 }
 
-func (event Event) CreateEvent() error {
+func (event *Event) CreateEvent() error {
 	query := "INSERT INTO events(name, location, date, ticket) VALUES ($1, $2, $3, $4)"
 	args := []interface{}{event.Name, event.Location, event.Date, event.Ticket}
 
@@ -20,6 +22,26 @@ func (event Event) CreateEvent() error {
 	if err != nil {
 		return err
 	}
+
+	query = "SELECT id FROM events WHERE name=$1 AND location=$2 AND date=$3 AND ticket=$4"
+	args = []interface{}{event.Name, event.Location, event.Date, event.Ticket}
+	rows, err := pg.DB.Query(query, args...)
+	if err != nil {
+		return err
+	}
+
+	rowCount := 0
+	for rows.Next() {
+		rowCount++
+		err = rows.Scan(&event.Id)
+		log.Println("Event ID: ", event.Id)
+		if err != nil {
+			return err
+		}
+	}
+	log.Println("Event ID of Query: ", event.Id)
+	log.Println("Row Count: ", rowCount)
+
 	return nil
 }
 

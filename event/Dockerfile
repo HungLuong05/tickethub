@@ -11,5 +11,6 @@ COPY . .
 RUN go build -o event .
 
 EXPOSE 8001
+# EXPOSE 50051
 
 CMD ["./event"]

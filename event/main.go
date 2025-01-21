@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"os"
+	// "context"
+	// "time"
 
 	"tickethub.com/event/config"
 	"tickethub.com/event/proto"
@@ -31,14 +33,23 @@ func main() {
 		log.Fatal("Could not connect to the database: ", err)
 	}
 
-	conn, err := grpc.NewClient("auth:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	
+	conn, err := grpc.NewClient("auth-service:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("Failed to connect to gRPC server: %v", err)
+		log.Println("Failed to connect to gRPC server: " + err.Error())
 	} else {
 		log.Println("Connected to gRPC server")
 	}
 	defer conn.Close()
 	grpcClient = proto.NewEventPermClient(conn)
+
+	// ctx, _ := context.WithTimeout(context.Background(), 5*time.Minute)
+	// res, err := grpcClient.AddEventPerm(ctx, &proto.AddEventPermRequest{UserId: 0, EventId: 0})
+	// if err != nil {
+	// 	log.Println("Bug in sending grpc request??" + err.Error())
+  // } else {
+	// 	log.Println("Successfully sent grpc request", res.Message)
+	// }
 
 	server := gin.Default()
 	// err = server.SetTrustedProxies([]string{"127.0.0.1"})
