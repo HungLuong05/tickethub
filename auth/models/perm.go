@@ -8,8 +8,8 @@ import (
 )
 
 type Perm struct {
-	EventId int64 `binding:"required"`
-	UserId  int64 `binding:"required"`
+	EventId int64 `json:"EventId" binding:"required"`
+	UserId  int64 `json:"UserId" binding:"required"`
 }
 
 func (perm Perm) AddPermission() error {

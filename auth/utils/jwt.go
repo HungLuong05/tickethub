@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"log"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -35,13 +36,15 @@ func VerifyToken(token string) (int64, error) {
 	}
 
 	if !parsedToken.Valid {
-		return 0, errors.New("invalid token")
+		return 0, errors.New("invalid token" + err.Error())
 	}
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok {
-		return 0, errors.New("invalid token claims")
+		return 0, errors.New("invalid token claims" + err.Error())
 	}
+
+	log.Println("Claims: ", claims)
 
 	userId := int64(claims["userId"].(float64))
 	return userId, nil

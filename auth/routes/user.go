@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"tickethub.com/auth/models"
@@ -44,6 +45,8 @@ func Login(context *gin.Context) {
 		context.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid credentials."})
 		return
 	}
+
+	log.Println("User Id:", user.Id)
 
 	token, err := utils.GenerateToken(user.Email, user.Id)
 	if err != nil {

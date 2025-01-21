@@ -4,6 +4,9 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"encoding/json"
+	"bytes"
+	"io"
 
 	"tickethub.com/event/proto"
 	"tickethub.com/event/models"
@@ -34,14 +37,58 @@ func CreateEvent (context *gin.Context, grpcClient proto.EventPermClient) {
     context.JSON(http.StatusBadRequest, gin.H{"message": "Invalid user ID: " + userIdStr})
     return
   }
+	
+	// res, err := grpcClient.AddEventPerm(context.Request.Context(), &proto.AddEventPermRequest{UserId: userId, EventId: event.Id})
+  // log.Println("Bug in sending grpc request??" + err.Error())
+	// if err != nil {
+  //   context.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to update event permission" + err.Error()})
+  //   return
+  // } else {
+	// 	log.Println(res.Message)
+	// }
 
-	log.Println("Bug in sending grpc request??")
 
-	_, err = grpcClient.AddEventPerm(context.Request.Context(), &proto.AddEventPermRequest{UserId: userId, EventId: event.Id})
-  if err != nil {
-    context.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to update event permission"})
-    return
-  }
+	// perm := map[string]string{
+	// 	"EventId": strconv.FormatInt(event.Id, 10),
+	// 	"UserId":  strconv.FormatInt(userId, 10),
+	// }
+	perm := map[string]int64{
+		"EventId": event.Id,
+		"UserId":  userId,
+	}
+	log.Println("EventId ", event.Id, " UserId ", userId)
+	log.Println("EventId " + strconv.FormatInt(event.Id, 10) + " UserId " + strconv.FormatInt(userId, 10))
+	permJSON, err := json.Marshal(perm)
+	log.Println("PermJSON: ", permJSON)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to marshal JSON"})
+		return
+	}
+
+	// resp, err := http.Post("http://auth-service:8000/perm", "application/json", bytes.NewBuffer(permJSON))
+	// if err != nil {
+	// 	context.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to send request to auth service" + err.Error()})
+	// 	return
+	// }
+
+	req, err := http.NewRequest("POST", "http://auth-service:8000/perm", bytes.NewBuffer(permJSON))
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create request to auth service" + err.Error()})
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to send request to auth service" + err.Error()})
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		context.JSON(resp.StatusCode, gin.H{"message": "Failed to add permission" + string(bodyBytes)})
+		return
+	}
 
 	context.JSON(http.StatusCreated, gin.H{
     "message": "Event created successfully",
@@ -130,6 +177,44 @@ func DeleteEvent (context *gin.Context, grpcClient proto.EventPermClient) {
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not delete event."})
+		return
+	}
+
+	log.Println(context.Request.Header)
+	userIdStr := context.GetHeader("X-User-ID")
+  userId, err := strconv.ParseInt(userIdStr, 10, 64)
+  if err != nil {
+    context.JSON(http.StatusBadRequest, gin.H{"message": "Invalid user ID: " + userIdStr})
+    return
+  }
+
+	perm := map[string]int64{
+		"EventId": event.Id,
+		"UserId":  userId,
+	}
+	permJSON, err := json.Marshal(perm)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to marshal JSON"})
+		return
+	}
+
+	req, err := http.NewRequest("DELETE", "http://auth-service:8000/perm", bytes.NewBuffer(permJSON))
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create request to auth service" + err.Error()})
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to send request to auth service" + err.Error()})
+		return
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		context.JSON(resp.StatusCode, gin.H{"message": "Failed to add permission" + string(bodyBytes)})
 		return
 	}
 
