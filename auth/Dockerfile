@@ -11,5 +11,6 @@ COPY . .
 RUN go build -o auth .
 
 EXPOSE 8000
+EXPOSE 50051
 
 CMD ["./auth"]
