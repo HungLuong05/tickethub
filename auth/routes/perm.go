@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strconv"
 	"log"
+	"io"
+	"encoding/json"
 
 	"github.com/gin-gonic/gin"
 	"tickethub.com/auth/utils"
@@ -13,17 +15,27 @@ import (
 func AddPerm(context *gin.Context) {
 	var perm models.Perm
 
-	err := context.ShouldBindJSON(&perm)
+	bodyBytes, err := io.ReadAll(context.Request.Body)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse request data."})
+		log.Println("Failed to read request body:", err)
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to read request body"})
 		return
 	}
 
-	log.Println(perm.EventId, perm.UserId)
+	log.Println("Request Body:", string(bodyBytes))
+
+	err = json.Unmarshal(bodyBytes, &perm)
+  if err != nil {
+    log.Println("Could not parse request data:", err)
+    context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse request data."})
+    return
+  }
+
+	log.Println("EventId", perm.EventId, "UserId", perm.UserId)
 
 	err = perm.AddPermission()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not add permission."})
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not add permission." + err.Error()})
 		return
 	}
 
@@ -75,11 +87,23 @@ func VerifyPerms(context *gin.Context) {
 func RemovePerm(context *gin.Context) {
 	var perm models.Perm
 
-	err := context.ShouldBindJSON(&perm)
+	bodyBytes, err := io.ReadAll(context.Request.Body)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse request data."})
+		log.Println("Failed to read request body:", err)
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to read request body"})
 		return
 	}
+
+	log.Println("Request Body:", string(bodyBytes))
+
+	err = json.Unmarshal(bodyBytes, &perm)
+  if err != nil {
+    log.Println("Could not parse request data:", err)
+    context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse request data."})
+    return
+  }
+
+	log.Println("EventId", perm.EventId, "UserId", perm.UserId)
 
 	err = perm.RemovePermission()
 	if err != nil {

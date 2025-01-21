@@ -53,18 +53,18 @@ func (user User) CreateAccount() error {
 	return nil
 }
 
-func (user User) ValidateCredentials() error {
-	all, err := pg.DB.Query("SELECT * FROM users")
-	if all == nil || !all.Next() || err != nil {
-		return errors.New("no users found")
-	} else {
-		var id int64
-		var email, hashedPassword, salt string
-		all.Scan(&id, &email, &hashedPassword, &salt)
-		fmt.Println("User found: ", id, email, hashedPassword, salt)
-	}
-	fmt.Println(all)
-	all.Close()
+func (user *User) ValidateCredentials() error {
+	// all, err := pg.DB.Query("SELECT * FROM users")
+	// if all == nil || !all.Next() || err != nil {
+	// 	return errors.New("no users found")
+	// } else {
+	// 	var id int64
+	// 	var email, hashedPassword, salt string
+	// 	all.Scan(&id, &email, &hashedPassword, &salt)
+	// 	fmt.Println("User found: ", id, email, hashedPassword, salt)
+	// }
+	// fmt.Println(all)
+	// all.Close()
 
 	// query := "SELECT * FROM users WHERE email = $1"
 	// row, err := pg.DB.Query(query, user.Email)
@@ -85,6 +85,7 @@ func (user User) ValidateCredentials() error {
 	}
 	row.Close()
 
+	user.Id = id
 	fmt.Println("Check password hash", user.Password, hashedPassword, salt)
 	passwordIsValid := utils.CheckPasswordHash(user.Password, hashedPassword, salt)
 
