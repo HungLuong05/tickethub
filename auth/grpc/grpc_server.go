@@ -22,7 +22,7 @@ func (s *server) AddEventPerm(ctx context.Context, req *proto.AddEventPermReques
 	// query := "INSERT INTO event_perms(event_id, user_id) VALUES($1, $2)"
 	// err := pg.DB.Exec(query, req.GetEventId(), req.GetUserId())
 	// if err != nil {
-	// 	log.Fatalf("Failed to execute query: %v", err)
+	// 	log.Printf("Failed to execute query: %v", err)
 	// 	return nil, err
 	// }
 
@@ -36,7 +36,7 @@ func (s *server) DeleteEventPerm(ctx context.Context, req *proto.DeleteEventPerm
 	// query := "DELETE FROM event_perms WHERE event_id = $1 AND user_id = $2"
 	// err := pg.DB.Exec(query, req.GetEventId(), req.GetUserId())
 	// if err != nil {
-	// 	log.Fatalf("Failed to execute query: %v", err)
+	// 	log.Printf("Failed to execute query: %v", err)
 	// 	return nil, err
 	// }
 
@@ -47,12 +47,12 @@ func StartGrpcServer(wg *sync.WaitGroup) {
 	defer wg.Done()
 	lis, err := net.Listen("tcp", "0.0.0.0:50051")
 	if err != nil {
-		log.Fatalf("Failed to listen: %v", err)
+		log.Printf("Failed to listen: %v", err)
 	}
 	grpcServer := grpc.NewServer()
 	proto.RegisterEventPermServer(grpcServer, &server{})
 	log.Println("Server is running on port 50051...", lis.Addr().String())
 	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("Failed to serve: %v", err)
+		log.Printf("Failed to serve: %v", err)
 	}
 }

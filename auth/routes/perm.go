@@ -81,6 +81,7 @@ func VerifyPerms(context *gin.Context) {
 		return
 	}
 
+	context.Header("User-ID", strconv.FormatInt(perm.UserId, 10))
 	context.JSON(http.StatusOK, gin.H{"message": "Authorized."})
 }
 

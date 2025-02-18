@@ -19,7 +19,7 @@ func (perm Perm) AddPermission() error {
 	err := pg.DB.Exec(query, args...)
 	if err != nil {
 		log.Println("Could not add permission: ", err)
-		return errors.New("could not add permission")
+		return errors.New("could not add permission" + err.Error())
 	}
 	return nil
 }
@@ -31,7 +31,7 @@ func (perm Perm) RemovePermission() error {
 	err := pg.DB.Exec(query, args...)
 	if err != nil {
 		log.Println("Could not remove permission: ", err)
-		return errors.New("could not remove permission")
+		return errors.New("could not remove permission" + err.Error())
 	}
 	return nil
 }
@@ -43,7 +43,7 @@ func (perm Perm) VerifyPermission() error {
 	rows, err := pg.DB.Query(query, args...)
 	if err != nil {
 		log.Println("Could not verify permission: ", err)
-		return errors.New("could not verify permission")
+		return errors.New("could not verify permission" + err.Error())
 	}
 	defer rows.Close()
 
