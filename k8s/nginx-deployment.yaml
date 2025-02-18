@@ -18,14 +18,14 @@ spec:
       containers:
       - name: nginx      
         image: nginx:stable
-        # resources:
-        #   limits:
-        #     memory: "128Mi"
-        #     cpu: "500m"
-        #   requests:
-        #     memory: "64Mi"
-        #     cpu: "0.5"
-        #     ephemeral-storage: "300Mi"
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+            ephemeral-storage: "300Mi"
         ports:
         - containerPort: 80
         volumeMounts:

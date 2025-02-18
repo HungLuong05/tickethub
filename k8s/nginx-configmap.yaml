@@ -19,43 +19,92 @@ data:
 
         log_format auth_debug '$upstream_http_x_user_id $upstream_http_user_id';
 
+        # resolver kube-dns.kube-system.svc.cluster.local valid=30s;
+
         server {
             listen 80;
             server_name _;
 
-            location / {
-                return 200 "Welcome to TicketHub";
-            }
+            proxy_connect_timeout 60s;
+            proxy_send_timeout 60s;
+            proxy_read_timeout 60s;
+            send_timeout 60s;
 
             location = /api/auth/login {
-                proxy_pass http://auth:8000/login;
+                proxy_pass http://auth-service:8000/login;
             }
 
             location = /api/auth/register {
-                proxy_pass http://auth:8000/register;
+                proxy_pass http://auth-service:8000/register;
             }
 
-            location = /api/auth/verify {
+            # Verify if user has permission to access the resource
+
+            location ~ ^/api/auth/perm/(\d+)$ {
                 # internal;
-                proxy_method POST;
-                proxy_pass http://auth:8000/verify;
+                proxy_method GET;
+                proxy_pass http://auth-service:8000/perm/$1;
                 proxy_set_header X-Original-URI $request_uri;
                 proxy_set_header Content-Length "";
                 proxy_set_header X-User-ID $upstream_http_user_id;
                 add_header X-User-ID $upstream_http_user_id;
 
-                
                 access_log /var/log/nginx/auth_debug.log auth_debug;
             }
 
-            location /api/event {
+            location ~ ^/api/event/(\d+)$ {
+                if ($request_method = DELETE) {
+                    access_log /var/log/nginx/access.log auth_debug;
+                    rewrite .* /_api/event/$1 last;
+                }
+
+                if ($request_method = PUT) {
+                    access_log /var/log/nginx/access.log auth_debug;
+                    rewrite .* /_api/event/$1 last;
+                }
+
+                access_log /var/log/nginx/access.log custom;
+                proxy_pass http://event-service:8001/api/event/$1;
+            }
+
+            location ~ ^/_api/event/(\d+)$ {
+                # internal;
+
+                rewrite .* /api/event/$1 break;
+
+                auth_request /api/auth/perm/$1;
+                auth_request_set $user_id $upstream_http_user_id;
+
+                access_log /var/log/nginx/auth_debug.log auth_debug;
+                
+                proxy_method $request_method;
+                proxy_set_header X-User-ID $user_id;
+                proxy_pass_request_headers on;
+                proxy_pass http://event-service:8001/api/event/$1;
+            }
+
+            # Verify if logined
+
+            location = /api/auth/verify {
+                # internal;
+                proxy_method GET;
+                proxy_pass http://auth-service:8000/verify;
+                proxy_set_header X-Original-URI $request_uri;
+                proxy_set_header Content-Length "";
+                proxy_set_header X-User-ID $upstream_http_user_id;
+                add_header X-User-ID $upstream_http_user_id;
+
+                access_log /var/log/nginx/auth_debug.log auth_debug;
+            }
+
+            location = /api/event {
                 if ($request_method = POST) {
                     rewrite .* /_api/event last;
                 }
-                proxy_pass http://event:8001/api/event;
+                proxy_pass http://event-service:8001/api/event;
             }
 
-            location /_api/event {
+            location = /_api/event {
                 internal;
 
                 rewrite .* /api/event break;
@@ -67,19 +116,22 @@ data:
                 
                 proxy_set_header X-User-ID $user_id;
                 proxy_pass_request_headers on;
-                proxy_pass http://event:8001/api/event;
+                proxy_pass http://event-service:8001/api/event;
             }
 
-            # location /api/event {
-            #    limit_except GET {
-            #         auth_request /api/auth/verify;
-            #         auth_request_set $user_id $upstream_http_x_user_id;
-            #         error_page 401 = @error401;
-            #         error_page 403 = @error403;
-            #         proxy_set_header X-User-ID $user_id;
-            #     }
-            #     proxy_pass http://event:8001/api/event
-            # }
+            location ~ ^/api/ticket/(\d+)$ {
+                auth_request /api/auth/verify;
+                auth_request_set $user_id $upstream_http_user_id;
+
+                access_log /var/log/nginx/auth_debug.log auth_debug;
+
+                proxy_method $request_method;
+                proxy_set_header X-User-ID $user_id;
+                proxy_pass_request_headers on;
+                # proxy_pass http://ticket-service:8002/api/ticket/$1;
+                proxy_pass http://10.99.39.112:8002/api/ticket/$1;
+                # proxy_pass http://event-service:8001/api/event/$1;
+            }
 
             location @error401 {
                 return 401 "Unauthorized";
@@ -88,5 +140,9 @@ data:
             location @error403 {
                 return 403 "Forbidden";
             }
+
+            # location / {
+            #     return 200 "Welcome to TicketHub";
+            # }
         }
     }

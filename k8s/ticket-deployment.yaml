@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ticket
+  labels:
+    app: ticket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ticket
+  template:
+    metadata:
+      labels:
+        app: ticket
+    spec:
+      containers:
+      - name: ticket
+        image: ghcr.io/hungluong05/tickethub-ticket:main
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+        ports:
+          - containerPort: 8002
+        env:
+          - name: REDIS_HOST
+            value: redis-eventdb-service
+          - name: REDIS_PORT
+            value: "6379"
+          - name: REDIS_PASSWORD
+            value: secretpassword
+      imagePullSecrets:
+      - name: ghcr-secret

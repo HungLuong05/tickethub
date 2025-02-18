@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth
+  name: backup
   labels:
-    app: auth
+    app: backup
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: auth
+      app: backup
   template:
     metadata:
       labels:
-        app: auth
+        app: backup
     spec:
       containers:
-      - name: auth
-        image: ghcr.io/hungluong05/tickethub-auth:main
+      - name: backup
+        image: ghcr.io/hungluong05/tickethub-backup:main
         imagePullPolicy: Always
         resources:
           limits:
@@ -25,22 +25,17 @@ spec:
           requests:
             memory: "64Mi"
             ephemeral-storage: "300Mi"
-        ports:
-          - name: http
-            containerPort: 8000
-          - name: grpc
-            containerPort: 50051
         env:
           - name: POSTGRES_USER
             value: hld
           - name: POSTGRES_PASSWORD
             value: secretpassword
           - name: POSTGRES_DB
-            value: userdb
+            value: eventdb
           - name: POSTGRES_PORT
             value: "5432"
           - name: POSTGRES_HOST
-            value: userdb
+            value: eventdb
       imagePullSecrets:
       - name: ghcr-secret
           

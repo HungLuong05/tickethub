@@ -14,22 +14,21 @@ spec:
       labels:
         app: event
     spec:
-      automountServiceAccountToken: false
       containers:
       - name: event
-        image: event:v1.0.7
-        # imagePullPolicy: Always
-        # resources:
-        #   limits:
-        #     memory: "128Mi"
-        #     cpu: "500m"
-        #   requests:
-        #     memory: "64Mi"
-        #     cpu: "1"
-        #     ephemeral-storage: "300Mi"
+        image: ghcr.io/hungluong05/tickethub-event:main
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+            ephemeral-storage: "300Mi"
         ports:
           - containerPort: 8001
-          - containerPort: 50051
+          # - containerPort: 50051
         env:
           - name: POSTGRES_USER
             value: hld
