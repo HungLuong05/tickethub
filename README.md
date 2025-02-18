@@ -1,4 +1,4 @@
-# Ticket Master Backend
+# Ticketmaster Backend
 
 ## Problem Requirements
 
@@ -36,5 +36,5 @@ kubectl apply -f ./k8s/*.yaml
 ## Future development
 
 - Deploy more kafka and zookeepers pods to achieve better fault tolerant
-- Deploy more event microservice to serve thousands of people watching remaning tickets of events
+- Deploy more event microservice to serve multiple people watching remaning tickets of events
 - Write tests for correctness and performance
