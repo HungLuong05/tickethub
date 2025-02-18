@@ -109,16 +109,16 @@ jobs:
         with:
           context: ./ticket
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta-event.outputs.tags }}
-          labels: ${{ steps.meta-event.outputs.labels }}
+          tags: ${{ steps.meta-ticket.outputs.tags }}
+          labels: ${{ steps.meta-ticket.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Sign the published Docker image
         if: ${{ github.event_name != 'pull_request' }}
         env:
-          TAGS: ${{ steps.meta-event.outputs.tags }}
-          DIGEST: ${{ steps.build-and-push-event.outputs.digest }}
+          TAGS: ${{ steps.meta-ticket.outputs.tags }}
+          DIGEST: ${{ steps.build-and-push-ticket.outputs.digest }}
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
       
       # Build, push, and sign container Backup

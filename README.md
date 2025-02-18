@@ -13,7 +13,7 @@
 
 **Ingress controller**: Nginx
 
-**Inter-communication**: Apache Kafka, HTTP
+**Messaging**: Apache Kafka, HTTP
 
 **Containerization**: Docker + Kubernetes
 
