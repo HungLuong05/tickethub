@@ -204,22 +204,21 @@ func (db *PGPool) CreateTables() (error) {
 }
 
 func (db *PGPool) DropTables() (error) {
-	dropUsersTable := `
-		DROP TABLE IF EXISTS users;
-	`
-	fmt.Printf("Dropping table: %v\n", dropUsersTable)
-	err := db.Exec(dropUsersTable)
-
-	if err != nil {
-		log.Printf("Could not drop table: %v", err)
-		return err
-	}
-
 	dropEventPermsTable := `
 		DROP TABLE IF EXISTS event_perms;
 	`
 	fmt.Printf("Dropping table: %v\n", dropEventPermsTable)
-	err = db.Exec(dropEventPermsTable)
+	err := db.Exec(dropEventPermsTable)
+	if err != nil {
+		log.Printf("Could not drop table: %v", err)
+		return err
+	}
+	
+	dropUsersTable := `
+		DROP TABLE IF EXISTS users;
+	`
+	fmt.Printf("Dropping table: %v\n", dropUsersTable)
+	err = db.Exec(dropUsersTable)
 	if err != nil {
 		log.Printf("Could not drop table: %v", err)
 		return err
