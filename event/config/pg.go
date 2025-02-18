@@ -19,13 +19,13 @@ const (
 	defaultConnectTimeout = time.Second * 8
 )
 
-var (
-	DB *PGPool
-)
-
 type PGPool struct {
 	ConnPool *pgxpool.Pool
 }
+
+var (
+	DB *PGPool
+)
 
 func Config() (*pgxpool.Config) {
 	DATABASE_URL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
@@ -195,9 +195,7 @@ func (db *PGPool) DropTables() (error) {
 	dropUsersTable := `DROP TABLE IF EXISTS events`
 
 	fmt.Printf("Dropping table: %v\n", dropUsersTable)
-	_, err := db.Query(dropUsersTable)
-	fmt.Printf("Dropped table: %v\n", dropUsersTable)
-
+	err := db.Exec(dropUsersTable)
 	if err != nil {
 		log.Fatal("Could not drop table")
 		return err

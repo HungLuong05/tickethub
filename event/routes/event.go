@@ -90,6 +90,37 @@ func CreateEvent (context *gin.Context, grpcClient proto.EventPermClient) {
 		return
 	}
 
+	ticket := map[string]int64{
+		"EventId": event.Id,
+		"NumTickets": event.Ticket,
+	}
+	log.Println("EventId", event.Id)
+	log.Println("NumTickets", event.Ticket)
+	ticketJSON, err := json.Marshal(ticket)
+	log.Println("TicketJSON: ", ticketJSON)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to marshal JSON"})
+		return
+	}
+	req, err = http.NewRequest("POST", "http://ticket-service:8002/api/ticket", bytes.NewBuffer(ticketJSON))
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create request to ticket service" + err.Error()})
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to send request to ticket service" + err.Error()})
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		context.JSON(resp.StatusCode, gin.H{"message": "Failed to add ticket" + string(bodyBytes)})
+		return
+	}
+
 	context.JSON(http.StatusCreated, gin.H{
     "message": "Event created successfully",
   })
